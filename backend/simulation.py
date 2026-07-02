@@ -9,7 +9,7 @@ class GameResult:
     outcome: int          # 1 = P1 wins, -1 = P2 wins, 0 = draw
     turns: int
     wars: int
-    snapshots: list[tuple[int,int]]       # list of dicts with state at each turn
+    snapshots: list[dict]       # list of dicts with state at each turn
 
 
 
@@ -30,8 +30,9 @@ class simulation:
         q2 = deque(self.set_2)
         snapshots = []
         while q1 and q2 and self.step < MAX_TURNS and not self.stop:
-            self.battle(q1, q2)
-            snapshots.append((len(q1), len(q2)))
+            snapshot = self.battle(q1,q2)
+            if snapshot:
+                snapshots.append(snapshot)
         if q1 and not q2:
             outcome = 1
         elif q2 and not q1:
@@ -41,7 +42,7 @@ class simulation:
         return GameResult(outcome = outcome, turns = self.step, wars = self.wars, snapshots = snapshots)
 
 
-    def battle(self, q1 : deque, q2 : deque, c1_war : list = None, c2_war : list = None) -> bool:
+    def battle(self, q1 : deque, q2 : deque, c1_war : list = None, c2_war : list = None) -> dict:
         self.step += 1
         c1 = q1.popleft()
         c2 = q2.popleft()
@@ -52,11 +53,27 @@ class simulation:
         if c1 > c2:
             q1.extend(pending1)
             q1.extend(pending2)
-            return True
+            return {                              # changed — return dict
+                "p1_cards": list(q1),
+                "p2_cards": list(q2),
+                "p1_card_played": pending1[-1],
+                "p2_card_played": pending2[-1],
+                "p1_won": True,
+                "margin": pending1[-1] - pending2[-1],
+                "was_war": len(pending1) > 1,
+            }
         elif c1 < c2:
-            q2.extend(pending1)
             q2.extend(pending2)
-            return False
+            q2.extend(pending1)
+            return {                              # changed — return dict
+                "p1_cards": list(q1),
+                "p2_cards": list(q2),
+                "p1_card_played": pending1[-1],
+                "p2_card_played": pending2[-1],
+                "p1_won": False,
+                "margin": pending1[-1] - pending2[-1],
+                "was_war": len(pending1) > 1,
+            }
         
         self.wars += 1
         if len(q1) < 3 and len(q2) < 3:
@@ -67,13 +84,31 @@ class simulation:
             q2.extend(pending1)
             q2.extend(q1)
             q1.clear()
-            return False
+            return {                             # changed — return dict
+                "p1_cards": list(q1),
+                "p2_cards": list(q2),
+                "p1_card_played": pending1[-1],
+                "p2_card_played": pending2[-1],
+                "p1_won": False,
+                # lossed because of lack of cards, margin might misinterpret this
+                "margin": pending2[-1] - pending1[-1],
+                "was_war": True,
+            }
         elif len(q2) < 3:
             q1.extend(pending1)
             q1.extend(pending2)
             q1.extend(q2)
             q2.clear()
-            return True
+            return {                             # changed — return dict
+                "p1_cards": list(q1),
+                "p2_cards": list(q2),
+                "p1_card_played": pending1[-1],
+                "p2_card_played": pending2[-1],
+                "p1_won": True,
+                # lossed because of lack of cards, margin might misinterpret this
+                "margin": pending1[-1] - pending2[-1],
+                "was_war": True,
+            }
 
         for _ in range(3):
             pending1.append(q1.popleft())
@@ -81,7 +116,7 @@ class simulation:
         return self.battle(q1, q2, pending1, pending2)
     
     def build_deck() -> list[int]:
-        return[rank for rank in range(1,14) for _ in range(4)]
+        return[rank for rank in range(2,15) for _ in range(4)]
     
     def deal(deck: list[int]) -> tuple[list[int], list[int]]:
         shuffled = deck.copy()
