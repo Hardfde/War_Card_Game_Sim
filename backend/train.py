@@ -39,7 +39,7 @@ def generate_data(n_games: int) -> tuple[np.ndarray, np.ndarray]:
 
         label = 1 if result.outcome == 1 else 0
 
-        for i, snapshot in enumerate(result.snapshots):
+        for i in range(len(result.snapshots)):
             X.append(extract(result.snapshots, total_cards, i))
             y.append(label)
 

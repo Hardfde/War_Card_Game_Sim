@@ -7,7 +7,7 @@ HIGH_CARD  = 11     # jack and above (with ace = 14)
 N_FEATURES = 11      # sanity check constant
 
 
-def extract(snapshots: list[dict], total_cards: int) -> np.ndarray:
+def extract(snapshots: list[dict], total_cards: int, index: int = -1) -> np.ndarray:
     """
     Takes the full snapshot history and returns a flat feature vector.
     All values normalised to roughly [0, 1].
@@ -15,8 +15,8 @@ def extract(snapshots: list[dict], total_cards: int) -> np.ndarray:
     NOTE: full information version — uses actual hand contents.
     Will be replaced with partial information version later.
     """
-
-    current = snapshots[-1]
+    history = snapshots[:index + 1] if index != -1 else snapshots
+    current = history[-1]
 
     # ------------------------------------------------------------------
     # 1. Card count
@@ -54,7 +54,7 @@ def extract(snapshots: list[dict], total_cards: int) -> np.ndarray:
     # ------------------------------------------------------------------
 
     streak = 0
-    for s in reversed(snapshots):    # exclude current snapshot
+    for s in reversed(history):    # exclude current snapshot
         if s["p1_won"]:
             streak += 1
         else:
@@ -68,7 +68,7 @@ def extract(snapshots: list[dict], total_cards: int) -> np.ndarray:
     #    More sensitive to momentum than all-time win rate.
     # ------------------------------------------------------------------
 
-    recent = snapshots[-RECENT_N:]
+    recent = history[-RECENT_N:]
     p1_recent_win_rate = sum(1 for s in recent if s["p1_won"]) / len(recent)
 
     # ------------------------------------------------------------------
@@ -78,7 +78,7 @@ def extract(snapshots: list[dict], total_cards: int) -> np.ndarray:
     #    Default 0.5 — neutral assumption, not "no margin".
     # ------------------------------------------------------------------
 
-    margins = [s["margin"] for s in snapshots]
+    margins = [s["margin"] for s in history]
     avg_margin = (sum(margins) / len(margins) / 12) if margins else 0.5
     curr_margin = current["margin"] / 12
     # ------------------------------------------------------------------
@@ -88,8 +88,8 @@ def extract(snapshots: list[dict], total_cards: int) -> np.ndarray:
     #               how collision-prone this deck ordering is.
     # ------------------------------------------------------------------
 
-    total_turns = len(snapshots)
-    wars        = sum(1 for s in snapshots if s["was_war"])
+    total_turns = len(history)
+    wars        = sum(1 for s in history if s["was_war"])
 
     norm_turn = min(total_turns / MAX_TURNS, 1.0)
     war_rate  = wars / total_turns   # total_turns always >= 1

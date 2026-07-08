@@ -6,6 +6,8 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from contextlib import asynccontextmanager
+from typing import Optional
 
 from simulation import simulation
 from features_model import extract, N_FEATURES
@@ -15,10 +17,19 @@ from features_model import extract, N_FEATURES
 # App
 # ------------------------------------------------------------------
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # runs on startup
+    load_models()
+    yield
+
+
 app = FastAPI(
     title="War Card Game API",
     description="Win probability estimation for the War card game",
     version="0.1.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -33,7 +44,6 @@ _models: dict = {}
 _meta:   dict = {}
 
 
-@app.on_event("startup")
 def load_models():
     global _models, _meta
 
@@ -51,7 +61,7 @@ def load_models():
     if not _models:
         print("WARNING: no models found — run train.py first")
 
-_game: dict | None = None
+_game: Optional[dict] = None
 
 
 def _require_game():
