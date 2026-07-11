@@ -114,20 +114,21 @@ def health():
     }
 
 
+class NewGameRequest(BaseModel):
+    q1: list[int] = Field(..., min_length=1)
+    q2: list[int] = Field(..., min_length=1)
+
 @app.post("/game/new", response_model=NewGameResponse)
-def new_game():
+def new_game(req: NewGameRequest):
     global _game
 
-    deck = simulation.build_deck()
-    q1, q2 = simulation.deal(deck)
-
     _game = {
-        "sim":       simulation(q1, q2),
+        "sim":       simulation(req.q1, req.q2),
         "snapshots": [],
         "over":      False,
     }
 
-    return NewGameResponse(q1=q1, q2=q2)
+    return NewGameResponse(q1=req.q1, q2=req.q2)
 
 
 @app.post("/game/step", response_model=StepResponse)
