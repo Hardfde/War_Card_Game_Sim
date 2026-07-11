@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>War Card Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="app">
+
+        <h1>War Card Game</h1>
+
+        <div id="players">
+
+            <div id="player1" class="player">
+                <h2>Player 1</h2>
+                <div id="p1-card-count" class="card-count">0 cards</div>
+                <div id="p1-hand" class="hand"></div>
+            </div>
+
+            <div id="battle-zone">
+                <div id="battle-display"></div>
+                <div id="war-message" class="hidden">WAR!</div>
+            </div>
+
+            <div id="player2" class="player">
+                <h2>Player 2</h2>
+                <div id="p2-card-count" class="card-count">0 cards</div>
+                <div id="p2-hand" class="hand"></div>
+            </div>
+
+        </div>
+
+        <div id="controls">
+            <button id="btn-new-game">New Game</button>
+            <button id="btn-battle" disabled>Battle</button>
+        </div>
+
+        <div id="probability-section">
+            <div id="prob-labels">
+                <span id="p1-prob-label">P1: 50%</span>
+                <span id="p2-prob-label">P2: 50%</span>
+            </div>
+            <div id="prob-bar-container">
+                <div id="prob-bar-p1"></div>
+                <div id="prob-bar-p2"></div>
+            </div>
+        </div>
+
+        <div id="game-message"></div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

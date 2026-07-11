@@ -1,0 +1,183 @@
+/* ---- Reset & base ---- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: sans-serif;
+    background: #1a1a2e;
+    color: #eee;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+}
+
+#app {
+    width: 100%;
+    max-width: 900px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
+/* ---- Players layout ---- */
+#players {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.player {
+    flex: 1;
+    background: #16213e;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.player h2 {
+    margin-bottom: 0.5rem;
+}
+
+.card-count {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 0.75rem;
+}
+
+/* ---- Hand display ---- */
+.hand {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: 40px;
+}
+
+.card-pip {
+    width: 32px;
+    height: 44px;
+    border-radius: 4px;
+    border: 1px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    background: #0f3460;
+    color: #eee;
+}
+
+.card-pip.highlight {
+    background: #e94560;
+    color: white;
+    transform: scale(1.15);
+    transition: transform 0.2s ease;
+}
+
+/* ---- Battle zone ---- */
+#battle-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    gap: 0.5rem;
+}
+
+#battle-display {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 1.5rem;
+    min-height: 60px;
+}
+
+#war-message {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #e94560;
+    letter-spacing: 2px;
+}
+
+/* ---- Controls ---- */
+#controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+button {
+    padding: 0.6rem 1.4rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: #0f3460;
+    color: #eee;
+    transition: background 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+    background: #e94560;
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ---- Probability bar ---- */
+#probability-section {
+    margin-bottom: 1.5rem;
+}
+
+#prob-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+#prob-bar-container {
+    display: flex;
+    height: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #16213e;
+}
+
+#prob-bar-p1 {
+    height: 100%;
+    width: 50%;
+    background: #0f3460;
+    transition: width 0.4s ease;
+}
+
+#prob-bar-p2 {
+    height: 100%;
+    width: 50%;
+    background: #e94560;
+    transition: width 0.4s ease;
+}
+
+/* ---- Game message ---- */
+#game-message {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    min-height: 2rem;
+    color: #e94560;
+}
+
+/* ---- Utility ---- */
+.hidden {
+    display: none;
+}
