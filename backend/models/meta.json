@@ -1,0 +1,10 @@
+{
+  "models": [
+    "logistic",
+    "boosted"
+  ],
+  "n_games": 10000,
+  "n_features": 11,
+  "total_cards": 52,
+  "trained_at": "2026-07-10T21:06:49"
+}

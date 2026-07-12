@@ -34,12 +34,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_methods=["GET", "POST"],
+    allow_origins=["http://localhost:3000", "http://[::]:3000"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
-MODELS_DIR = Path("models")
+MODELS_DIR = Path(__file__).parent / "models"
 _models: dict = {}
 _meta:   dict = {}
 
