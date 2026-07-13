@@ -36,6 +36,12 @@
         <div id="controls">
             <button id="btn-new-game">New Game</button>
             <button id="btn-battle" disabled>Battle</button>
+            <button id="btn-play-pause" disabled>Play</button>
+        </div>
+
+        <div id="speed-control">
+            <label for="speed-slider">Play Speed: <span id="speed-label">5</span> battles/sec</label>
+            <input type="range" id="speed-slider" min="1" max="25" value="5">
         </div>
 
         <div id="probability-section">
@@ -47,6 +53,14 @@
                 <div id="prob-bar-p1"></div>
                 <div id="prob-bar-p2"></div>
             </div>
+        </div>
+
+        <div id="graph-section">
+            <div id="graph-controls">
+                <span id="turn-label">Turn 0</span>
+                <button id="btn-history" disabled>Full History</button>
+            </div>
+            <canvas id="prob-graph" width="860" height="200"></canvas>
         </div>
 
         <div id="game-message"></div>

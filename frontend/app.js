@@ -9,10 +9,15 @@ let q1 = [];
 let q2 = [];
 let gameActive = false;
 let animating = false;
+let playing = false;
+let playTimer = null;
 
 // ---- DOM references ----
 const btnNewGame  = document.getElementById("btn-new-game");
 const btnBattle   = document.getElementById("btn-battle");
+const btnPlayPause  = document.getElementById("btn-play-pause");
+const speedSlider   = document.getElementById("speed-slider");
+const speedLabel    = document.getElementById("speed-label");
 const p1Hand      = document.getElementById("p1-hand");
 const p2Hand      = document.getElementById("p2-hand");
 const p1Count     = document.getElementById("p1-card-count");
@@ -36,6 +41,11 @@ function sleep(ms) {
 
 function setButtonState(battleEnabled) {
     btnBattle.disabled = !battleEnabled || animating;
+}
+
+// speed slider value is battles/sec — convert to ms delay between battles
+function getDelayMs() {
+    return Math.round(1000 / parseInt(speedSlider.value));
 }
 
 // ---- Rendering ----
@@ -110,6 +120,7 @@ async function performAnimation(pending1, pending2, p1Won) {
     battleDisplay.innerHTML = "";
     warMessage.classList.add("hidden");
     animating = false;
+    btnBattle.disabled = false;
 }
 
 // ---- Game logic ----
@@ -153,6 +164,16 @@ async function battle(q1, q2, pending1 = [], pending2 = []) {
     }
 
     return battle(q1, q2, pending1, pending2);
+}
+
+async function endGame(message, finalProb) {
+    gameActive = false;
+    stopAutoPlay();
+    gameMessage.textContent = message;
+    updateProbability(finalProb);
+    btnBattle.disabled    = true;
+    btnPlayPause.disabled = true;
+    await apiEndGame();
 }
 
 // ---- API calls ----
@@ -205,6 +226,8 @@ btnNewGame.addEventListener("click", async () => {
         updateProbability(0.5);
         renderHands();
         setButtonState(true);
+        btnPlayPause.disabled = false;
+
     } catch (e) {
         gameMessage.textContent = "Failed to connect to backend.";
     }
@@ -213,33 +236,26 @@ btnNewGame.addEventListener("click", async () => {
 btnBattle.addEventListener("click", async () => {
     if (!gameActive || animating) return;
 
+    
     const c1 = q1[0];
     const c2 = q2[0];
 
     // run battle — updates q1/q2 in place and triggers animation
-    const result = battle(q1, q2);
-
+    const result = await battle(q1, q2);
     // wait for animation to finish before updating UI and calling backend
-    await performAnimation;
     renderHands();
-
-    // check game over
-    if (q1.length === 0 || q2.length === 0) {
-        gameActive = false;
-        gameMessage.textContent = q1.length > 0 ? "Player 1 wins!" : "Player 2 wins!";
-        updateProbability(q1.length > 0 ? 1.0 : 0.0);
-        setButtonState(false);
-        await apiEndGame();
-        return;
-    }
 
     // check draw
     if (result === null) {
-        gameActive = false;
-        gameMessage.textContent = "Draw!";
-        setButtonState(false);
-        await apiEndGame();
+        endGame("Draw!", 0.5);
         return;
+    }
+
+    // check game over
+    if (q1.length === 0 || q2.length === 0) {
+        const p1Wins = q1.length > 0;
+            endGame(p1Wins ? "Player 1 wins!" : "Player 2 wins!", p1Wins ? 1.0 : 0.0);
+            return;
     }
 
     // get probability from backend
@@ -249,6 +265,59 @@ btnBattle.addEventListener("click", async () => {
     } catch (e) {
         gameMessage.textContent = "Backend error — probability unavailable.";
     }
+});
 
-    setButtonState(true);
+
+btnPlayPause.addEventListener("click", () => {
+    if (!gameActive) return;
+
+    if (playing) {
+        // pause
+        playing = false;
+        clearTimeout(playTimer);
+        playTimer = null;         //
+        btnPlayPause.textContent = "Play";
+        return;
+    }
+
+    // play
+    playing = true;
+    btnPlayPause.textContent = "Pause";
+
+    async function scheduleNext() {
+        if (!playing || !gameActive) return;
+
+        const c1 = q1[0];
+        const c2 = q2[0];
+        const result = await battle(q1, q2);
+        renderHands();
+
+        if (result === null) {
+            endGame("Draw!", 0.5);
+            return;
+        }
+
+        if (q1.length === 0 || q2.length === 0) {
+            const p1Wins = q1.length > 0;
+            endGame(p1Wins ? "Player 1 wins!" : "Player 2 wins!", p1Wins ? 1.0 : 0.0);
+            return;
+        }
+
+        try {
+            const data = await apiStep(c1, c2);
+            updateProbability(data.p1_win_prob);
+        } catch (e) {
+            gameMessage.textContent = "Backend error — probability unavailable.";
+        }
+
+        playTimer = setTimeout(scheduleNext, getDelayMs());
+    }
+
+    scheduleNext();
+});
+
+//                                        IS THIS NECESSARY????
+// update speed label live as slider moves
+speedSlider.addEventListener("input", () => {
+    speedLabel.textContent = speedSlider.value;
 });
