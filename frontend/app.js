@@ -89,6 +89,7 @@ function updateProbability(p1WinProb) {
 
 // ---- Animation ----
 async function performAnimation(pending1, pending2, p1Won) {
+    if (!gameActive) return;
     animating = true;
     setButtonState(false);
 
@@ -101,6 +102,7 @@ async function performAnimation(pending1, pending2, p1Won) {
     // highlight the deciding cards in each hand briefly
     // pending lists contain cards that have already left the queues
     // so we just display them in the battle zone
+    if (!gameActive) return;
     battleDisplay.innerHTML = `
         <span style="color: ${p1Won ? '#4CAF50' : '#aaa'}">${rankName(pending1[pending1.length - 1])}</span>
         <span style="color: #aaa; font-size: 1rem">vs</span>
@@ -110,6 +112,7 @@ async function performAnimation(pending1, pending2, p1Won) {
     await sleep(800);
 
     // show winner message briefly
+    if (!gameActive) return;
     battleDisplay.innerHTML = p1Won
         ? `<span style="color: #4CAF50">P1 wins!</span>`
         : `<span style="color: #e94560">P2 wins!</span>`;
@@ -120,7 +123,9 @@ async function performAnimation(pending1, pending2, p1Won) {
     battleDisplay.innerHTML = "";
     warMessage.classList.add("hidden");
     animating = false;
-    btnBattle.disabled = false;
+    if (!playing && gameActive) {
+        btnBattle.disabled = false;
+    }
 }
 
 // ---- Game logic ----
@@ -168,11 +173,14 @@ async function battle(q1, q2, pending1 = [], pending2 = []) {
 
 async function endGame(message, finalProb) {
     gameActive = false;
-    stopAutoPlay();
     gameMessage.textContent = message;
     updateProbability(finalProb);
     btnBattle.disabled    = true;
     btnPlayPause.disabled = true;
+    playing = false;
+    btnPlayPause.textContent = "Play";
+    clearTimeout(playTimer);
+    playTimer = null;
     await apiEndGame();
 }
 
@@ -234,7 +242,7 @@ btnNewGame.addEventListener("click", async () => {
 });
 
 btnBattle.addEventListener("click", async () => {
-    if (!gameActive || animating) return;
+    if (!gameActive || animating || playing) return;
 
     
     const c1 = q1[0];
@@ -265,6 +273,7 @@ btnBattle.addEventListener("click", async () => {
     } catch (e) {
         gameMessage.textContent = "Backend error — probability unavailable.";
     }
+    btnBattle.disabled = false;
 });
 
 
@@ -275,7 +284,7 @@ btnPlayPause.addEventListener("click", () => {
         // pause
         playing = false;
         clearTimeout(playTimer);
-        playTimer = null;         //
+        playTimer = null;
         btnPlayPause.textContent = "Play";
         return;
     }
