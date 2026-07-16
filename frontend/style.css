@@ -190,17 +190,37 @@ button:disabled {
     background: #16213e;
     border-radius: 12px;
     padding: 1rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
 }
  
 #graph-controls {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 0.75rem;
     font-size: 0.9rem;
     color: #aaa;
 }
+ 
+#graph-wrapper {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background: #16213e;
+    border-radius: 6px;
+}
+ 
+#graph-axes,
+#graph-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+ 
+#graph-axes { z-index: 1; }   /* axes on top so labels render over the line */
+#graph-line { z-index: 0; }
 
 /* ---- Game message ---- */
 #game-message {
