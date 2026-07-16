@@ -4,7 +4,7 @@ import numpy as np
 from simulation import MAX_TURNS
 RECENT_N   = 10     # window for recent win rate
 HIGH_CARD  = 11     # jack and above (with ace = 14)
-N_FEATURES = 11      # sanity check constant
+N_FEATURES = 11    # sanity check constant
 
 
 def extract(snapshots: list[dict], total_cards: int, index: int = -1) -> np.ndarray:
@@ -42,9 +42,12 @@ def extract(snapshots: list[dict], total_cards: int, index: int = -1) -> np.ndar
     #    Fraction of each player's hand that is jack or above (incl ace).
     #    Normalised implicitly — already a fraction in [0, 1].
     # ------------------------------------------------------------------
+    p1_high_amount = sum(1 for r in p1_hand if r >= HIGH_CARD) if p1_hand else 0.5
+    p2_high_amount = sum(1 for r in p2_hand if r >= HIGH_CARD) if p2_hand else 0.5
 
-    p1_high = sum(1 for r in p1_hand if r >= HIGH_CARD) / len(p1_hand) if p1_hand else 0.5
-    p2_high = sum(1 for r in p2_hand if r >= HIGH_CARD) / len(p2_hand) if p2_hand else 0.5
+
+    p1_high = p1_high_amount / len(p1_hand) if p1_hand else 0.5
+    p2_high = p2_high_amount / len(p2_hand) if p2_hand else 0.5
 
     # ------------------------------------------------------------------
     # 4. Win streak
@@ -104,12 +107,14 @@ def extract(snapshots: list[dict], total_cards: int, index: int = -1) -> np.ndar
         p2_avg_rank,        # 2  p2 average rank
         p1_high,            # 3  p1 high card fraction
         p2_high,            # 4  p2 high card fraction
-        norm_streak,        # 5  p1 win streak
-        p1_recent_win_rate, # 6  p1 recent win rate
-        avg_margin,         # 7  average deciding margin
-        curr_margin,        # 8  current win margin
-        norm_turn,          # 9  game age
-        war_rate,           # 10 war frequency
+        #p1_high_amount,     # 5  p1_high_amount
+        #p2_high_amount,     # 6  p2_high_amount
+        norm_streak,        # 7  p1 win streak
+        p1_recent_win_rate, # 8  p1 recent win rate
+        avg_margin,         # 9  average deciding margin
+        curr_margin,        # 10  current win margin
+        norm_turn,          # 11  game age
+        war_rate,           # 12 war frequency
     ], dtype=np.float32)
 
     assert len(vector) == N_FEATURES, f"Expected {N_FEATURES} features, got {len(vector)}"

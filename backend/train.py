@@ -12,6 +12,8 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 from simulation import simulation
 from features_model import extract, N_FEATURES
@@ -76,6 +78,9 @@ def main():
 
     assert X.shape[1] == N_FEATURES, f"Feature mismatch: got {X.shape[1]}, expected {N_FEATURES}"
 
+    # to test accuracy
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
     models = build_models()
     to_train = ["logistic", "boosted"] if args.model == "both" else [args.model]
 
@@ -86,6 +91,21 @@ def main():
         if args.cv:
             scores = cross_val_score(model, X, y, cv=5, scoring="roc_auc", n_jobs=-1)
             print(f"  CV ROC-AUC: {scores.mean():.4f} +/- {scores.std():.4f}")
+
+        # train on test data
+        model.fit(X_train, y_train)
+
+        
+        y_pred = model.predict(X_test)
+
+        
+        acc = accuracy_score(y_test, y_pred)
+        cm = confusion_matrix(y_test, y_pred)
+        
+        print(f"  Test Accuracy: {acc * 100:.2f}%")
+        print("  Confusion Matrix:")
+        print(f"    {cm[0][0]} (True Neg) | {cm[0][1]} (False Pos)")
+        print(f"    {cm[1][0]} (False Neg) | {cm[1][1]} (True Pos)")
 
         model.fit(X, y)
 

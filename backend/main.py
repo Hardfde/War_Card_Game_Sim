@@ -84,7 +84,7 @@ def _get_model(name: str):
 class StepRequest(BaseModel):
     c1: int = Field(..., ge=2, le=14)
     c2: int = Field(..., ge=2, le=14)
-    model: str = Field("logistic")
+    model: str = Field("boosted") # changed to boosted
 
 
 class StepResponse(BaseModel):
