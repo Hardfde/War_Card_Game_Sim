@@ -4,8 +4,23 @@ import numpy as np
 from simulation import MAX_TURNS
 RECENT_N   = 10     # window for recent win rate
 HIGH_CARD  = 11     # jack and above (with ace = 14)
-N_FEATURES = 11    # sanity check constant
+N_FEATURES = 13    # sanity check constant
 
+FEATURE_NAMES = [
+    "p1_share",
+    "p1_avg_rank",
+    "p2_avg_rank",
+    "p1_high",
+    "p2_high",
+    "p1_high_amount",
+    "p2_high_amount",
+    "norm_streak",
+    "p1_recent_win_rate",
+    "avg_margin",
+    "curr_margin",
+    "norm_turn",
+    "war_rate",
+]
 
 def extract(snapshots: list[dict], total_cards: int, index: int = -1) -> np.ndarray:
     """
@@ -31,8 +46,10 @@ def extract(snapshots: list[dict], total_cards: int, index: int = -1) -> np.ndar
     #    Tells the model who is holding the stronger cards right now.
     # ------------------------------------------------------------------
 
-    p1_hand = current["p1_cards"]
-    p2_hand = current["p2_cards"]
+    p1_raw_hand = current["p1_cards"]
+    p2_raw_hand = current["p2_cards"]
+    p1_hand = [v for v, _ in p1_raw_hand]
+    p2_hand = [v for v, _ in p2_raw_hand]
 
     p1_avg_rank = (sum(p1_hand) / len(p1_hand) / 14) if p1_hand else 0.5
     p2_avg_rank = (sum(p2_hand) / len(p2_hand) / 14) if p2_hand else 0.5
@@ -107,8 +124,8 @@ def extract(snapshots: list[dict], total_cards: int, index: int = -1) -> np.ndar
         p2_avg_rank,        # 2  p2 average rank
         p1_high,            # 3  p1 high card fraction
         p2_high,            # 4  p2 high card fraction
-        #p1_high_amount,     # 5  p1_high_amount
-        #p2_high_amount,     # 6  p2_high_amount
+        p1_high_amount,     # 5  p1_high_amount
+        p2_high_amount,     # 6  p2_high_amount
         norm_streak,        # 7  p1 win streak
         p1_recent_win_rate, # 8  p1 recent win rate
         avg_margin,         # 9  average deciding margin

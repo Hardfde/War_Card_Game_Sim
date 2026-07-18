@@ -4,7 +4,40 @@
     "boosted"
   ],
   "n_games": 10000,
-  "n_features": 11,
+  "n_features": 13,
+  "n_features_partial": 15,
+  "feature_names": [
+    "p1_share",
+    "p1_avg_rank",
+    "p2_avg_rank",
+    "p1_high",
+    "p2_high",
+    "p1_high_amount",
+    "p2_high_amount",
+    "norm_streak",
+    "p1_recent_win_rate",
+    "avg_margin",
+    "curr_margin",
+    "norm_turn",
+    "war_rate"
+  ],
+  "feature_names_partial": [
+    "p1_share",
+    "p1_seen_fraction",
+    "p2_seen_fraction",
+    "p1_avg_rank_seen",
+    "p2_avg_rank_seen",
+    "p1_high_fraction_seen",
+    "p2_high_fraction_seen",
+    "p1_high_amount",
+    "p2_high_amount",
+    "norm_streak",
+    "p1_recent_win_rate",
+    "avg_margin",
+    "curr_margin",
+    "norm_turn",
+    "war_rate"
+  ],
   "total_cards": 52,
-  "trained_at": "2026-07-10T21:06:49"
+  "trained_at": "2026-07-17T21:24:51"
 }

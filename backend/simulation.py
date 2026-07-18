@@ -17,8 +17,8 @@ MAX_TURNS = 5000
 class simulation:
 
     def __init__(self, set_1: list[int], set_2 : list[int]):
-        self.q1 = deque(set_1)
-        self.q2 = deque(set_2)
+        self.q1 = deque((v, False) for v in set_1)
+        self.q2 = deque((v, False) for v in set_2)
         self.step = 0
         self.wars = 0
         self.stop = False
@@ -41,36 +41,22 @@ class simulation:
 
     def battle(self, q1 : deque, q2 : deque, c1_war : list = None, c2_war : list = None) -> dict:
         self.step += 1
-        c1 = q1.popleft()
-        c2 = q2.popleft()
+        raw_c1 = q1.popleft()
+        raw_c2 = q2.popleft()
+        c1 = (raw_c1[0], True)
+        c2 = (raw_c2[0], True)
 
         pending1 = (c1_war or []) + [c1]
         pending2 = (c2_war or []) + [c2]
 
-        if c1 > c2:
+        if c1[0] > c2[0]:
             q1.extend(pending1)
             q1.extend(pending2)
-            return {                              # changed — return dict
-                "p1_cards": list(q1),
-                "p2_cards": list(q2),
-                "p1_card_played": pending1[-1],
-                "p2_card_played": pending2[-1],
-                "p1_won": True,
-                "margin": pending1[-1] - pending2[-1],
-                "was_war": len(pending1) > 1,
-            }
-        elif c1 < c2:
+            return self._make_snapshot(q1, q2, pending1, pending2, p1_won=True)
+        elif c1[0] < c2[0]:
             q2.extend(pending2)
             q2.extend(pending1)
-            return {                              # changed — return dict
-                "p1_cards": list(q1),
-                "p2_cards": list(q2),
-                "p1_card_played": pending1[-1],
-                "p2_card_played": pending2[-1],
-                "p1_won": False,
-                "margin": pending2[-1] - pending1[-1],
-                "was_war": len(pending1) > 1,
-            }
+            return self._make_snapshot(q1, q2, pending1, pending2, p1_won=False)
         
         self.wars += 1
         if len(q1) < 4 and len(q2) < 4:
@@ -81,36 +67,39 @@ class simulation:
             q2.extend(pending1)
             q2.extend(q1)
             q1.clear()
-            return {                             # changed — return dict
-                "p1_cards": list(q1),
-                "p2_cards": list(q2),
-                "p1_card_played": pending1[-1],
-                "p2_card_played": pending2[-1],
-                "p1_won": False,
-                # lossed because of lack of cards, margin might misinterpret this
-                "margin": pending2[-1] - pending1[-1],
-                "was_war": True,
-            }
+            return self._make_snapshot(q1, q2, pending1, pending2, p1_won=False)
         elif len(q2) < 4:
             q1.extend(pending1)
             q1.extend(pending2)
             q1.extend(q2)
             q2.clear()
-            return {                             # changed — return dict
-                "p1_cards": list(q1),
-                "p2_cards": list(q2),
-                "p1_card_played": pending1[-1],
-                "p2_card_played": pending2[-1],
-                "p1_won": True,
-                # lossed because of lack of cards, margin might misinterpret this
-                "margin": pending1[-1] - pending2[-1],
-                "was_war": True,
-            }
+            return self._make_snapshot(q1, q2, pending1, pending2, p1_won=True)
 
         for _ in range(3):
             pending1.append(q1.popleft())
             pending2.append(q2.popleft())
         return self.battle(q1, q2, pending1, pending2)
+    
+    def _make_snapshot(self, q1, q2, pending1, pending2, p1_won: bool) -> dict:
+        # pending[-1] is always the deciding (or forfeit) card's value
+        deciding_c1 = pending1[-1][0]
+        deciding_c2 = pending2[-1][0]
+ 
+        # number of war levels this battle went through
+        # each war level adds exactly 4 cards to pending (3 face-down + 1 decider)
+        # plus the original tie card at index 0, so:
+        n_wars = (len(pending1) - 1) // 4
+ 
+        return {
+            "p1_cards": list(q1),          # list of (value, seen) pairs
+            "p2_cards": list(q2),
+            "p1_card_played": deciding_c1,
+            "p2_card_played": deciding_c2,
+            "p1_won": p1_won,
+            "margin": (deciding_c1 - deciding_c2) if p1_won else (deciding_c2 - deciding_c1),
+            "was_war": n_wars > 0,
+            "n_wars": n_wars,
+        }
     
     @staticmethod
     def build_deck() -> list[int]:
@@ -121,41 +110,3 @@ class simulation:
         shuffled = deck.copy()
         random.shuffle(shuffled)
         return shuffled[:26], shuffled[26:]
-
-# if __name__ == "__main__":
-#     countWins = 0
-#     countLoses = 0
-#     countDraws = 0
-#     trials = 100000
-#     steps = 0
-#     maxSteps = 0
-#     stopCount = 0
-#     for i in range(trials):
-#         pool = [1,2,3] * 4
-#         random.shuffle(pool)
-#         set_1 = pool[:6]
-#         set_2 = pool[6:12]
-#         # set_1 = [1,4,2,1,2,3]
-#         # set_2 = [4,4,4,1,3,2]
-
-#         sim = simulation(set_1, set_2)
-#         temp = sim.simulate()
-#         if sim.step >= 25000:
-#             stopCount += 1
-#         else:
-#             steps += sim.step
-#         if sim.step > maxSteps and sim.step < 25000:
-#             maxSteps = sim.step
-#         if temp == 1:
-#             countWins += 1
-#         elif temp == -1:
-#             countLoses += 1
-#         else:
-#             countDraws += 1
-  
-#     print(f"Win percentage: {(countWins/ (countWins + countLoses + countDraws)) * 100:.2f}%")
-#     print(f"Lose percentage: {(countLoses/ (countWins + countLoses + countDraws)) * 100:.2f}%")
-#     print(f"Draw percentage: {(countDraws/ (countWins + countLoses + countDraws)) * 100:.2f}%")
-#     print(f"Average steps: {steps / (trials - stopCount):.2f}")
-#     print(f"Maximum steps: {maxSteps}")
-#     print(f"Stopped games: {stopCount}")

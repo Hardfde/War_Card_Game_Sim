@@ -52,7 +52,7 @@ def load_models():
         with open(meta_path) as f:
             _meta = json.load(f)
 
-    for name in ["logistic", "boosted"]:
+    for name in ["logistic", "boosted", "logistic_partial", "boosted_partial"]:
         path = MODELS_DIR / f"war_{name}.pkl"
         if path.exists():
             _models[name] = joblib.load(path)
@@ -139,7 +139,7 @@ def step(req: StepRequest):
     model = _get_model(req.model)
 
     # validate frontend and backend agree on what cards are at the top
-    if req.c1 != _game["sim"].q1[0] or req.c2 != _game["sim"].q2[0]:
+    if req.c1 != _game["sim"].q1[0][0] or req.c2 != _game["sim"].q2[0][0]:
         raise HTTPException(status_code=409, detail="Frontend and backend deques are out of sync")
 
     snapshot = _game["sim"].battle(_game["sim"].q1, _game["sim"].q2)
