@@ -29,6 +29,8 @@
     const p1ProbLabel = document.getElementById("p1-prob-label");
     const p2ProbLabel = document.getElementById("p2-prob-label");
     const gameMessage = document.getElementById("game-message");
+    const modelSelect   = document.getElementById("model-select");
+    const featureSelect = document.getElementById("feature-select");
 
     // ---- Helpers ----
     function rankName(r) {
@@ -395,7 +397,11 @@ function drawLine(data) {
         const response = await fetch(`${API}/game/step`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ c1, c2 })
+            body: JSON.stringify({
+            c1, c2,
+            model:       modelSelect.value,
+            feature_set: featureSelect.value,
+        })
         });
         if (!response.ok) throw new Error(`/game/step failed: ${response.status}`);
         return response.json();
