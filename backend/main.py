@@ -10,7 +10,8 @@ from contextlib import asynccontextmanager
 from typing import Optional
 
 from simulation import simulation
-from features_model import extract, N_FEATURES
+from features_model import extract as extract_full, N_FEATURES as N_FEATURES_FULL
+from features_partial import extract as extract_partial, N_FEATURES as N_FEATURES_PARTIAL
 
 
 # ------------------------------------------------------------------
@@ -84,7 +85,8 @@ def _get_model(name: str):
 class StepRequest(BaseModel):
     c1: int = Field(..., ge=2, le=14)
     c2: int = Field(..., ge=2, le=14)
-    model: str = Field("boosted") # changed to boosted
+    model:       str = Field("boosted")   # "logistic" or "boosted"
+    feature_set: str = Field("partial")   # "full" or "partial"
 
 
 class StepResponse(BaseModel):
@@ -136,7 +138,17 @@ def step(req: StepRequest):
     global _game
     _require_game_active()
 
-    model = _get_model(req.model)
+    # pick the right extract function and model key based on feature_set
+    if req.feature_set == "partial":
+        extract_fn   = extract_partial
+        expected_n   = N_FEATURES_PARTIAL
+        model_key    = f"{req.model}_partial"
+    else:
+        extract_fn   = extract_full
+        expected_n   = N_FEATURES_FULL
+        model_key    = req.model
+
+    model = _get_model(model_key)
 
     # validate frontend and backend agree on what cards are at the top
     if req.c1 != _game["sim"].q1[0][0] or req.c2 != _game["sim"].q2[0][0]:
@@ -150,9 +162,8 @@ def step(req: StepRequest):
     if _game["sim"].stop:
         _game["over"] = True
 
-    # compute features from full snapshot history
-    feats = extract(_game["snapshots"], total_cards=52)
-    assert len(feats) == N_FEATURES
+    feats = extract_fn(_game["snapshots"], total_cards=52)
+    assert len(feats) == expected_n
 
     prob = float(model.predict_proba(feats.reshape(1, -1))[0][1])
 
